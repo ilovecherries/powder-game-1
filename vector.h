@@ -36,5 +36,6 @@ extern Point Vec_unit[513]; // Ce[][] (roughly)
 
 real clamp(real value, real min, real max); // Lc()
 
+#define M_PI   3.14159265358979323846264338327950288
 #define PI ((real)M_PI)
 #define TAU (PI*2)

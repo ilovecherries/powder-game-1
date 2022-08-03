@@ -1,3 +1,13 @@
+# Building with Rust
+Requires setting the `CC environment variable to "clang" since this relies on
+LLVM compiler (MSVC won't work).
+```ps1
+$Env:CC="clang"
+```
+
+idk how to build it SPECIALLY????
+but `cargo check` works so `cargo build` should also be fine
+
 # Compiling
 Note: __requires linux__  
 

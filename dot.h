@@ -85,7 +85,7 @@ extern Dot* const Dot_BLOCK; // -1
 
 // these are messy
 #define Dot_pos(x,y) (&Dot_at[(int)(y)][(int)(x)])
-#define Dot_pos2(pos...) (&Dot_at[(int)(pos).y][(int)(pos).x])
+#define Dot_pos2(pos) (&Dot_at[(int)(pos).y][(int)(pos).x])
 #define Dot_ofs(x,y) ((int)(x)+(int)(y)*WIDTH)
 #define Dot_pos3(pos,x,y) (Dot_pos2(pos)[Dot_ofs(x,y)])
 
