@@ -17,8 +17,6 @@ fn main() {
 		.file("vector.c")
 		.file("wheel-frames.c")
 		.file("wheel.c")
-		// kill me
-		.file("elements/All.c")
 		// ok final stretch
 		.file("render/ball.c")
 		.file("render/bg.c")
