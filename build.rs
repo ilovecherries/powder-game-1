@@ -1,4 +1,5 @@
 fn main() {
+	std::env::set_var("CC", "clang");
 	cc::Build::new()
 		.file("ball.c")
 		.file("block.c")
