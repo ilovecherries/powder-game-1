@@ -1,34 +1,72 @@
 fn main() {
 	std::env::set_var("CC", "clang");
+
+	let files = vec![
+		"ball.c",
+		"block.c",
+		"bubble.c",
+		"dot.c",
+		"elements.c",
+		"font.c",
+		"input.c",
+		"main.c",
+		"menu-input.c",
+		"menu.c",
+		"object.c",
+		"random.c",
+		"reset.c",
+		"save.c",
+		"vector.c",
+		"wheel-frames.c",
+		"wheel.c",
+		"render/ball.c",
+		"render/bg.c",
+		"render/bg.c",
+		"render/ball.c",
+		"render/bg.c",
+		"render/bubble.c",
+		"render/dot.c",
+		"render/draw.c",
+		"render/menu.c",
+		"render/object.c",
+		"render/scale.c",
+		"render/wheel.c",
+	];
+
 	cc::Build::new()
-		.file("ball.c")
-		.file("block.c")
-		.file("bubble.c")
-		.file("dot.c")
-		.file("elements.c")
-		.file("font.c")
-		.file("input.c")
-		.file("main.c")
-		.file("menu-input.c")
-		.file("menu.c")
-		.file("object.c")
-		.file("random.c")
-		.file("reset.c")
-		.file("save.c")
-		.file("vector.c")
-		.file("wheel-frames.c")
-		.file("wheel.c")
-		// ok final stretch
-		.file("render/ball.c")
-		.file("render/bg.c")
-		.file("render/bubble.c")
-		.file("render/dot.c")
-		.file("render/draw.c")
-		.file("render/menu.c")
-		.file("render/object.c")
-		.file("render/scale.c")
-		.file("render/wheel.c")
 		.warnings(false)
+		.files(files)
 		.compile("pg1.exe");
-	println!("cargo:rerun-if-changed=*.c");
+	
+	cargo_emit::rerun_if_changed!(
+		"ball.c",
+		"block.c",
+		"bubble.c",
+		"dot.c",
+		"elements.c",
+		"font.c",
+		"input.c",
+		"main.c",
+		"menu-input.c",
+		"menu.c",
+		"object.c",
+		"random.c",
+		"reset.c",
+		"save.c",
+		"vector.c",
+		"wheel-frames.c",
+		"wheel.c",
+		"render/ball.c",
+		"render/bg.c",
+		"render/bg.c",
+		"render/ball.c",
+		"render/bg.c",
+		"render/bubble.c",
+		"render/dot.c",
+		"render/draw.c",
+		"render/menu.c",
+		"render/object.c",
+		"render/scale.c",
+		"render/wheel.c",
+	);
 }

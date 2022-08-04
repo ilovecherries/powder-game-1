@@ -23,4 +23,5 @@ features = [
 ]
 
 [build-dependencies]
+cargo-emit = "0.2.1"
 cc = "1.0.73"

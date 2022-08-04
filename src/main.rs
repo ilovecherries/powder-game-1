@@ -1,7 +1,9 @@
+use std::borrow::BorrowMut;
 use std::ffi::CStr;
-use std::os::raw::{c_short, c_ulong, c_ushort};
+use std::os::raw::{c_long, c_short, c_ulong, c_ushort};
 use std::os::windows::ffi::OsStrExt;
 use std::ptr::{addr_of, addr_of_mut, null_mut};
+use std::time::{SystemTime, UNIX_EPOCH};
 use std::{
 	env,
 	ffi::{c_void, OsStr},
@@ -10,11 +12,9 @@ use std::{
 use widestring::{u16str, utf16str};
 use windows::core::{InParam, PCWSTR, PWSTR};
 use windows::Win32::Foundation::{BOOL, HINSTANCE, HWND, LPARAM, LRESULT, RECT, WPARAM};
-use windows::Win32::Graphics::Gdi::{
-	BeginPaint, EndPaint, GetDC, GetSysColorBrush, StretchDIBits, BITMAPINFO, BITMAPINFOHEADER,
-	BI_RGB, DIB_RGB_COLORS, HDC, PAINTSTRUCT, SRCCOPY,
-};
+use windows::Win32::Graphics::Gdi::{BeginPaint, EndPaint, GetDC, GetSysColorBrush, StretchDIBits, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS, HDC, PAINTSTRUCT, SRCCOPY, RGBQUAD, RedrawWindow, UpdateWindow, InvalidateRect};
 use windows::Win32::System::LibraryLoader::GetModuleHandleW;
+use windows::Win32::System::SystemInformation::GetTickCount;
 use windows::Win32::System::Threading::{GetStartupInfoW, STARTUPINFOW};
 use windows::Win32::UI::Controls::Dialogs::{OFN_FILEMUSTEXIST, OFN_PATHMUSTEXIST, OPENFILENAMEW};
 use windows::Win32::UI::Input::KeyboardAndMouse::{
@@ -25,7 +25,7 @@ use windows::Win32::UI::WindowsAndMessaging::{
 	LoadCursorW, PeekMessageW, PostQuitMessage, RegisterClassW, TranslateMessage, CS_HREDRAW,
 	CS_VREDRAW, CW_USEDEFAULT, HMENU, IDC_ARROW, MSG, PM_REMOVE, WINDOW_EX_STYLE, WM_CLOSE,
 	WM_DESTROY, WM_KEYDOWN, WM_MOUSEMOVE, WM_PAINT, WM_QUIT, WNDCLASSW, WS_OVERLAPPEDWINDOW,
-	WS_VISIBLE,
+	WS_VISIBLE, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONUP, WM_KEYUP,
 };
 
 type Axis = i32;
@@ -95,6 +95,7 @@ static mut WIN: Option<HWND> = None;
 static mut WC: Option<WNDCLASSW> = None;
 static mut HINSTANCE2: Option<HINSTANCE> = None;
 static mut DC: Option<HDC> = None;
+static mut RECT2: Option<RECT> = None;
 
 extern "C" {
 	static mut mouse: MouseState;
@@ -130,23 +131,28 @@ macro_rules! discard {
 
 #[allow(non_snake_case)]
 #[no_mangle]
-extern "C" fn Platform_nanosec() -> i64 {
-	return 0;
+extern "C" fn Platform_nanosec() -> c_long {
+	unsafe {
+		(GetTickCount() as c_long).wrapping_mul(1000000 as c_long)
+	}
 }
 
 #[allow(non_snake_case)]
 #[no_mangle]
 extern "C" fn Platform_createWindow(width: Axis, height: Axis, title: *mut c_char) {
 	let style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
-	let mut rect = RECT {
-		top: 0,
-		left: 0,
-		bottom: height,
-		right: width,
-	};
+	unsafe {
+		RECT2 = Some(RECT {
+			top: 0,
+			left: 0,
+			bottom: height,
+			right: width,
+		});
+	}
 	let win_title: PCWSTR = PCWSTR!(title);
 
 	unsafe {
+		let mut rect = RECT2.unwrap();
 		AdjustWindowRect(addr_of_mut!(rect), style, false);
 		WIN = Some(CreateWindowExW(
 			WINDOW_EX_STYLE(0),
@@ -172,8 +178,8 @@ extern "C" fn Platform_drawBitmap(
 	bitmap: Platform_Bitmap,
 	dx: c_int,
 	dy: c_int,
-	srcx: c_int,
-	srcy: c_int,
+	src_x: c_int,
+	src_y: c_int,
 	w: c_int,
 	h: c_int,
 ) {
@@ -201,8 +207,8 @@ extern "C" fn Platform_drawBitmap(
 			dy,
 			w,
 			h,
-			srcy,
-			srcx,
+			src_y,
+			src_x,
 			w,
 			h,
 			bitmap.data,
@@ -262,19 +268,18 @@ extern "C" fn Platform_selectFile(mode: c_int) -> *mut c_void {
 }
 
 fn handle_keypress(num: usize, state: bool) {
-	// TODO: really need to see if this actaully even fucking works
 	let code = match VIRTUAL_KEY(num as u16) {
-		VK_W => 'W' as usize,
-		VK_A => 'A' as usize,
-		VK_S => 'S' as usize,
-		VK_D => 'D' as usize,
+		VK_W => b'W',
+		VK_A => b'A',
+		VK_S => b'S',
+		VK_D => b'D',
+		VK_LEFT => 37,
 		VK_UP => 38,
-		VK_LEFT => 39,
 		VK_RIGHT => 39,
 		VK_DOWN => 40,
-		VK_RETURN => '\r' as usize,
+		VK_RETURN => b'\r',
 		_ => 0,
-	};
+	} as usize;
 	if code != 0 {
 		unsafe {
 			Keys[code].heldNow = state;
@@ -283,6 +288,18 @@ fn handle_keypress(num: usize, state: bool) {
 			} else {
 				Keys[code].gotRelease = true;
 			}
+		}
+	}
+}
+
+fn mouse_button(num: usize, state: bool) {
+	unsafe {
+		let btn = mouse.buttons[num].borrow_mut();
+		btn.heldNow = state;
+		if state {
+			btn.gotPress = true;
+		} else {
+			btn.gotRelease = true
 		}
 	}
 }
@@ -313,7 +330,12 @@ unsafe extern "system" fn WndProc(
 				y: GET_Y_LPARAM(l_param) as f32,
 			}
 		}
+		WM_LBUTTONDOWN => mouse_button(0, true),
+		WM_LBUTTONUP => mouse_button(0, false),
+		WM_RBUTTONDOWN => mouse_button(2, true),
+		WM_RBUTTONUP => mouse_button(2, false),
 		WM_KEYDOWN => handle_keypress(w_param_val, true),
+		WM_KEYUP => handle_keypress(w_param_val, false),
 		_ => return DefWindowProcW(hwnd, msg, w_param, l_param),
 	}
 	return LRESULT(0);
@@ -373,7 +395,10 @@ fn main() {
 			}
 
 			Platform_frame();
-			Platform_redraw();
+			let rect = RECT2.unwrap();
+			InvalidateRect(WIN.unwrap(), addr_of!(rect), false);
+			RECT2 = Some(rect);
+			// Platform_redraw();
 		}
 	}
 }
