@@ -39,6 +39,7 @@ type Color = u32;
 
 #[repr(C)]
 #[allow(non_snake_case)]
+#[allow(non_camel_case_types)]
 struct Platform_Bitmap {
 	width: axis,
 	height: axis,
