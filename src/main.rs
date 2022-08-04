@@ -1,4 +1,4 @@
-use std::ffi::{CStr};
+use std::ffi::CStr;
 use std::os::raw::{c_short, c_ulong, c_ushort};
 use std::os::windows::ffi::OsStrExt;
 use std::ptr::{addr_of, addr_of_mut, null_mut};
@@ -8,9 +8,8 @@ use std::{
 	os::raw::{c_char, c_float, c_int},
 };
 use widestring::{u16str, utf16str};
-use windows::Win32::UI::Input::KeyboardAndMouse::{VK_RETURN, VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN, VIRTUAL_KEY, VK_W, VK_A, VK_S, VK_D};
 use windows::core::{InParam, PCWSTR, PWSTR};
-use windows::Win32::Foundation::{HINSTANCE, HWND, LPARAM, LRESULT, RECT, WPARAM, BOOL};
+use windows::Win32::Foundation::{BOOL, HINSTANCE, HWND, LPARAM, LRESULT, RECT, WPARAM};
 use windows::Win32::Graphics::Gdi::{
 	BeginPaint, EndPaint, GetDC, GetSysColorBrush, StretchDIBits, BITMAPINFO, BITMAPINFOHEADER,
 	BI_RGB, DIB_RGB_COLORS, HDC, PAINTSTRUCT, SRCCOPY,
@@ -18,10 +17,15 @@ use windows::Win32::Graphics::Gdi::{
 use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows::Win32::System::Threading::{GetStartupInfoW, STARTUPINFOW};
 use windows::Win32::UI::Controls::Dialogs::{OFN_FILEMUSTEXIST, OFN_PATHMUSTEXIST, OPENFILENAMEW};
+use windows::Win32::UI::Input::KeyboardAndMouse::{
+	VIRTUAL_KEY, VK_A, VK_D, VK_DOWN, VK_LEFT, VK_RETURN, VK_RIGHT, VK_S, VK_UP, VK_W,
+};
 use windows::Win32::UI::WindowsAndMessaging::{
-	AdjustWindowRect, CreateWindowExW, DefWindowProcW, DestroyWindow, LoadCursorW, PostQuitMessage,
-	RegisterClassW, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, HMENU, IDC_ARROW, WINDOW_EX_STYLE,
-	WM_CLOSE, WM_DESTROY, WM_PAINT, WNDCLASSW, WS_OVERLAPPEDWINDOW, WS_VISIBLE, MSG, PeekMessageW, PM_REMOVE, TranslateMessage, DispatchMessageW, WM_QUIT, WM_KEYDOWN, WM_MOUSEMOVE
+	AdjustWindowRect, CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW,
+	LoadCursorW, PeekMessageW, PostQuitMessage, RegisterClassW, TranslateMessage, CS_HREDRAW,
+	CS_VREDRAW, CW_USEDEFAULT, HMENU, IDC_ARROW, MSG, PM_REMOVE, WINDOW_EX_STYLE, WM_CLOSE,
+	WM_DESTROY, WM_KEYDOWN, WM_MOUSEMOVE, WM_PAINT, WM_QUIT, WNDCLASSW, WS_OVERLAPPEDWINDOW,
+	WS_VISIBLE,
 };
 
 type Axis = i32;
@@ -32,12 +36,12 @@ pub type WORD = c_ushort;
 #[inline]
 #[allow(non_snake_case)]
 pub fn LOWORD(l: DWORD) -> WORD {
-   (l & 0xffff) as WORD
+	(l & 0xffff) as WORD
 }
 #[inline]
 #[allow(non_snake_case)]
 pub fn HIWORD(l: DWORD) -> WORD {
-   ((l >> 16) & 0xffff) as WORD
+	((l >> 16) & 0xffff) as WORD
 }
 #[inline]
 #[allow(non_snake_case)]
@@ -65,7 +69,7 @@ struct Platform_Bitmap {
 #[allow(non_snake_case)]
 struct Point {
 	x: c_float,
-	y: c_float
+	y: c_float,
 }
 
 #[repr(C)]
@@ -75,7 +79,7 @@ struct ButtonState {
 	gotRelease: bool,
 	held: bool,
 	heldNow: bool,
-	wasHeld: bool
+	wasHeld: bool,
 }
 
 #[repr(C)]
@@ -119,9 +123,9 @@ macro_rules! PCWSTR {
 
 /// This discards the value passed to it, just to make my life easier
 macro_rules! discard {
-	($exp:expr) => {
-		{ let _ = $exp; }
-	};
+	($exp:expr) => {{
+		let _ = $exp;
+	}};
 }
 
 #[allow(non_snake_case)]
@@ -306,7 +310,7 @@ unsafe extern "system" fn WndProc(
 		WM_MOUSEMOVE => {
 			mouse.pos = Point {
 				x: GET_X_LPARAM(l_param) as f32,
-				y: GET_Y_LPARAM(l_param) as f32
+				y: GET_Y_LPARAM(l_param) as f32,
 			}
 		}
 		WM_KEYDOWN => handle_keypress(w_param_val, true),
@@ -354,11 +358,12 @@ fn main() {
 	loop {
 		unsafe {
 			while PeekMessageW(
-				addr_of_mut!(msg), 
+				addr_of_mut!(msg),
 				InParam::<HWND>::null().abi(),
 				0,
-				0, 
-				PM_REMOVE) != BOOL(0)
+				0,
+				PM_REMOVE,
+			) != BOOL(0)
 			{
 				if msg.message == WM_QUIT {
 					return;
