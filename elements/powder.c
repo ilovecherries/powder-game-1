@@ -22,7 +22,7 @@ static void ball(Ball* ball, Elem touched, Elem* newType, Point vel) {
 	}
 }
 
-AUTORUN {
+ELEMENTDEF(POWDER) {
 	ELEMENTS[Elem_POWDER] = (ElementDef){
 		.name = "POWDER",
 		.color = 0xF2BD6B,

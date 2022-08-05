@@ -21,7 +21,7 @@ static void ball(Ball* ball, Elem touched, Elem* newType, Point vel) {
 		Ball_break(ball, 0, touched, 0, Point(0.5f*ball->vel.xy), 0.5f);
 }
 
-AUTORUN {
+ELEMENTDEF(STEAM) {
 	ELEMENTS[Elem_STEAM] = (ElementDef){
 		.name = "STEAM",
 		.color = 0xE0E0E0,

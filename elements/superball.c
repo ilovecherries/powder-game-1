@@ -86,7 +86,7 @@ static bool dot(Dot* p, Block* c) {
 	return false;
 }
 
-AUTORUN {
+ELEMENTDEF(SUPERBALL) {
 	ELEMENTS[Elem_SUPERBALL] = (ElementDef){
 		"S-BALL", 0xFF40A0, State_POWDER,
 		

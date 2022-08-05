@@ -25,7 +25,7 @@ static bool dot(Dot* p, Block* c) {
 	return false;
 }
 
-AUTORUN {
+ELEMENTDEF(SNOW) {
 	ELEMENTS[Elem_SNOW] = (ElementDef){
 		.name = "SNOW",
 		.color = 0xFFFFFF,

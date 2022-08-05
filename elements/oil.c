@@ -68,7 +68,7 @@ static bool ball_touching(Dot* part, Ball* ball, Elem* newType) {
 	return false;
 }
 
-AUTORUN {
+ELEMENTDEF(OIL) {
 	ELEMENTS[Elem_OIL] = (ElementDef){
 		.name = "OIL",
 		.color = 0x803020,
@@ -80,9 +80,8 @@ AUTORUN {
 		.ballWeight = 0.1,
 		.ballAdvection = 0,
 		.wheelWeight = 3,
-		
 		.update_dot = dot,
 		.update_ball = ball,
-		.update_ball_touching = ball_touching,	
+		.update_ball_touching = ball_touching,
 	};
 }

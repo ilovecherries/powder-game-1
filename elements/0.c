@@ -3,7 +3,7 @@
 #include "../elements.h"
 #include "../ball.h"
 
-AUTORUN {
+ELEMENTDEF(ZERO) {
 	ELEMENTS[0] = (ElementDef){
 		.name = "Elem_0",
 	};

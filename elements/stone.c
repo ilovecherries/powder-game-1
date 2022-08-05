@@ -92,7 +92,7 @@ static bool ball_touching(Dot* part, Ball* ball, Elem* newType) {
 	return false;
 }
 
-AUTORUN {
+ELEMENTDEF(STONE) {
 	ELEMENTS[Elem_STONE] = (ElementDef){
 		.name = "STONE",
 		.color = 0x808080,

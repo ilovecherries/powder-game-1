@@ -51,7 +51,7 @@ static bool dot(Dot* p, Block* c) {
 	return false;
 }
 
-AUTORUN {
+ELEMENTDEF(FIREWORKS) {
 	ELEMENTS[Elem_FIREWORKS] = (ElementDef){
 		"F-WORKS", 0xFF9966, State_POWDER,
 		.playerValid = true,

@@ -395,10 +395,10 @@ fn main() {
 			}
 
 			Platform_frame();
+			Platform_redraw();
 			let rect = RECT2.unwrap();
 			InvalidateRect(WIN.unwrap(), addr_of!(rect), false);
 			RECT2 = Some(rect);
-			// Platform_redraw();
 		}
 	}
 }

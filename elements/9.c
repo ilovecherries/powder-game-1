@@ -3,7 +3,7 @@
 #include "../elements.h"
 #include "../ball.h"
 
-AUTORUN {
+ELEMENTDEF(NINE) {
 	ELEMENTS[9] = (ElementDef){
 		.name = "Elem_9",
 		.color = 0xB0A090,

@@ -51,4 +51,9 @@ enum Element {
 	Elem_MAX,
 };
 
+#define ELEMENT(NAME) \
+	ELEMENTDEF(NAME); NAME##__element()
+#define ELEMENTDEF(NAME) \
+	void NAME##__element()
+void init_elements();
 extern ElementDef ELEMENTS[Elem_MAX];

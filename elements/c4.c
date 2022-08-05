@@ -67,7 +67,7 @@ static void ball(Ball* ball, Elem touched, Elem* newType, Point vel) {
 		Ball_break(ball, 0, Elem_NITRO, 0, Point(0), 0);
 }
 
-AUTORUN {
+ELEMENTDEF(C4) {
 	ELEMENTS[Elem_C4] = (ElementDef){
 		.name = "C4",
 		.color = 0xFFFFCC,

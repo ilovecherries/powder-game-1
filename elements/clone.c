@@ -47,7 +47,7 @@ static bool ball_touching(Dot* part, Ball* ball, Elem* newType) {
 	return false;
 }
 
-AUTORUN {
+ELEMENTDEF(CLONE) {
 	ELEMENTS[Elem_CLONE] = (ElementDef){
 		"CLONE", 0x907010, State_SOLID,
 		

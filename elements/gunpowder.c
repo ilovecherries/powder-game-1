@@ -76,7 +76,7 @@ static bool ball_touching(Dot* part, Ball* ball, Elem* newType) {
 	return false;
 }
 
-AUTORUN {
+ELEMENTDEF(GUNPOWDER) {
 	ELEMENTS[Elem_GUNPOWDER] = (ElementDef){
 		.name = "G-POWDER",
 		.color = 0xB08050,

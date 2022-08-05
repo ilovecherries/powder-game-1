@@ -22,7 +22,7 @@ static void ball(Ball* ball, Elem touched, Elem* newType, Point vel) {
 	}
 }
 
-AUTORUN {
+ELEMENTDEF(FAN) {
 	ELEMENTS[Elem_FAN] = (ElementDef){
 		.name = "FAN",
 		.color = 0x8080FF,
