@@ -108,5 +108,6 @@ fn main() {
 		"render/object.c",
 		"render/scale.c",
 		"render/wheel.c",
+		"common.h"
 	);
 }

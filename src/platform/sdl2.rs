@@ -1,20 +1,20 @@
-use std::{borrow::Borrow, ffi::c_void};
-
 use sdl2::{
 	event::Event,
 	keyboard::Keycode,
 	pixels::PixelFormatEnum,
-	render::{Canvas, Texture, TextureCreator},
+	rect::Rect,
+	render::{Canvas, TextureCreator},
 	surface::Surface,
 	video::{Window, WindowContext},
-	Sdl, VideoSubsystem, rect::Rect,
+	Sdl, VideoSubsystem,
 };
+use std::time::Duration;
 
 use crate::{frame, redraw, WINDOW_HEIGHT, WINDOW_TITLE, WINDOW_WIDTH};
 
 use super::{Axis, Color, Platform, PlatformBitmap};
 
-pub type SDL2BitmapData<'a> = Surface<'a>;
+pub type SDL2BitmapData<'a> = &'a mut [u32];
 
 pub struct SDL2Platform {
 	/// SDL Context currently being used
@@ -59,22 +59,12 @@ impl<'a> Platform<SDL2BitmapData<'a>> for SDL2Platform {
 		width: Axis,
 		height: Axis,
 	) -> PlatformBitmap<SDL2BitmapData> {
-		// Cast the data to *mut u8 so that we can convert it into a Rust array
-		let data_cast = data as *mut u8;
 		// Cast to Rust array
-		let d = unsafe { std::slice::from_raw_parts_mut(data_cast, (width * height * 4) as usize) };
-		let surface = Surface::from_data(
-			d,
-			width as u32,
-			height as u32,
-			(width as u32) * 4,
-			PixelFormatEnum::RGBX8888,
-		)
-		.unwrap();
+		let d = unsafe { std::slice::from_raw_parts_mut(data, (width * height) as usize) };
 		PlatformBitmap {
 			width,
 			height,
-			data: surface,
+			data: d,
 		}
 	}
 
@@ -97,6 +87,7 @@ impl<'a> Platform<SDL2BitmapData<'a>> for SDL2Platform {
 				redraw();
 			}
 			self.canvas.present();
+			::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
 		}
 	}
 
@@ -110,13 +101,27 @@ impl<'a> Platform<SDL2BitmapData<'a>> for SDL2Platform {
 		w: i32,
 		h: i32,
 	) {
-		let texture = bitmap.data.as_texture(&self.texture_creator).unwrap();
-		let src = Rect::new(
-			src_x, src_y, w as u32,  h as u32
-		);
-		let dest = Rect::new(
-			dx, dy, w as u32,  h as u32
-		);
+		let copy = {
+			let d = &mut bitmap
+				.data
+				.iter()
+				.map(|x| x | 0xFF000000)
+				.collect::<Vec<u32>>()[..];
+			let cast = d.as_mut_ptr() as *mut u8;
+			unsafe { std::slice::from_raw_parts_mut(cast, (bitmap.width * bitmap.height * 4) as usize) }
+		};
+
+		let surface = Surface::from_data(
+			copy,
+			bitmap.width as u32,
+			bitmap.height as u32,
+			(bitmap.width as u32) * 4,
+			PixelFormatEnum::ARGB8888,
+		)
+		.unwrap();
+		let texture = surface.as_texture(&self.texture_creator).unwrap();
+		let src = Rect::new(src_x, src_y, w as u32, h as u32);
+		let dest = Rect::new(dx, dy, w as u32, h as u32);
 		self.canvas.copy(&texture, src, dest).unwrap();
 	}
 
