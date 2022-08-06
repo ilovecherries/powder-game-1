@@ -9,7 +9,7 @@ fn main() {
 		"elements.c",
 		"font.c",
 		"input.c",
-		"main.c",
+		// "main.c",
 		"menu-input.c",
 		"menu.c",
 		"object.c",
