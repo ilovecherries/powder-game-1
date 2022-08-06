@@ -14,7 +14,7 @@ use crate::{frame, WINDOW_HEIGHT, WINDOW_TITLE, WINDOW_WIDTH};
 
 use super::{Axis, Color, Platform, PlatformBitmap};
 
-pub type SDL2BitmapData = Surface<'static>;
+pub type SDL2BitmapData<'a> = Surface<'a>;
 
 pub struct SDL2Platform {
 	/// SDL Context currently being used
@@ -52,7 +52,7 @@ impl Default for SDL2Platform {
 	}
 }
 
-impl Platform<SDL2BitmapData> for SDL2Platform {
+impl<'a> Platform<SDL2BitmapData<'a>> for SDL2Platform {
 	fn create_bitmap(
 		&self,
 		data: *mut Color,
