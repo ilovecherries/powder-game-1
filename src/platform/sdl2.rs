@@ -1,16 +1,20 @@
 use sdl2::{
 	event::Event,
 	keyboard::Keycode,
+	mouse::MouseButton,
 	pixels::PixelFormatEnum,
 	rect::Rect,
 	render::{Canvas, TextureCreator},
 	surface::Surface,
 	video::{Window, WindowContext},
-	Sdl, VideoSubsystem,
+	Sdl,
 };
-use std::time::Duration;
+use std::{
+	borrow::BorrowMut,
+	time::{Duration, SystemTime, UNIX_EPOCH},
+};
 
-use crate::{frame, redraw, WINDOW_HEIGHT, WINDOW_TITLE, WINDOW_WIDTH};
+use crate::{frame, mouse, redraw, ButtonState, Point, WINDOW_HEIGHT, WINDOW_TITLE, WINDOW_WIDTH};
 
 use super::{Axis, Color, Platform, PlatformBitmap};
 
@@ -19,12 +23,22 @@ pub type SDL2BitmapData<'a> = &'a mut [u32];
 pub struct SDL2Platform {
 	/// SDL Context currently being used
 	sdl_context: Sdl,
-	/// Representation of the video subsystem for the window
-	video_subsystem: VideoSubsystem,
 	/// Canvas that is used by the window
 	canvas: Canvas<Window>,
 	/// Texture creator from the canvas
 	texture_creator: TextureCreator<WindowContext>,
+}
+
+fn get_mouse_button<'a>(button: MouseButton) -> &'a mut ButtonState {
+	unsafe {
+		mouse.buttons[match button {
+			sdl2::mouse::MouseButton::Left => 0,
+			sdl2::mouse::MouseButton::Middle => 1,
+			sdl2::mouse::MouseButton::Right => 2,
+			_ => unreachable!(),
+		}]
+		.borrow_mut()
+	}
 }
 
 impl Default for SDL2Platform {
@@ -45,7 +59,6 @@ impl Default for SDL2Platform {
 		let texture_creator = canvas.texture_creator();
 		SDL2Platform {
 			sdl_context,
-			video_subsystem,
 			canvas,
 			texture_creator,
 		}
@@ -79,6 +92,47 @@ impl<'a> Platform<SDL2BitmapData<'a>> for SDL2Platform {
 						keycode: Some(Keycode::Escape),
 						..
 					} => break 'running,
+					Event::MouseMotion {
+						x,
+						y,
+						timestamp: _,
+						window_id: _,
+						which: _,
+						mousestate: _,
+						xrel: _,
+						yrel: _,
+					} => unsafe {
+						mouse.pos = Point {
+							x: x as f32,
+							y: y as f32,
+						};
+					},
+					Event::MouseButtonDown {
+						timestamp: _,
+						window_id: _,
+						which: _,
+						mouse_btn,
+						clicks: _,
+						x: _,
+						y: _,
+					} => {
+						let btn = get_mouse_button(mouse_btn);
+						btn.heldNow = true;
+						btn.gotPress = true;
+					}
+					Event::MouseButtonUp {
+						timestamp: _,
+						window_id: _,
+						which: _,
+						mouse_btn,
+						clicks: _,
+						x: _,
+						y: _,
+					} => {
+						let btn = get_mouse_button(mouse_btn);
+						btn.heldNow = false;
+						btn.gotRelease = true;
+					}
 					_ => {}
 				}
 			}
@@ -87,7 +141,7 @@ impl<'a> Platform<SDL2BitmapData<'a>> for SDL2Platform {
 				redraw();
 			}
 			self.canvas.present();
-			::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+			::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 120));
 		}
 	}
 
@@ -101,14 +155,16 @@ impl<'a> Platform<SDL2BitmapData<'a>> for SDL2Platform {
 		w: i32,
 		h: i32,
 	) {
-		let copy = {
+		let copy: &mut [u8] = {
 			let d = &mut bitmap
 				.data
 				.iter()
 				.map(|x| x | 0xFF000000)
 				.collect::<Vec<u32>>()[..];
 			let cast = d.as_mut_ptr() as *mut u8;
-			unsafe { std::slice::from_raw_parts_mut(cast, (bitmap.width * bitmap.height * 4) as usize) }
+			unsafe {
+				std::slice::from_raw_parts_mut(cast, (bitmap.width * bitmap.height * 4) as usize)
+			}
 		};
 
 		let surface = Surface::from_data(
@@ -126,6 +182,9 @@ impl<'a> Platform<SDL2BitmapData<'a>> for SDL2Platform {
 	}
 
 	fn nanosec(&self) -> u32 {
-		todo!()
+		SystemTime::now()
+			.duration_since(UNIX_EPOCH)
+			.unwrap()
+			.as_millis() as u32
 	}
 }

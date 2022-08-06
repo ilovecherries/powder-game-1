@@ -1,7 +1,9 @@
 use std::{
 	ffi::c_void,
-	os::raw::{c_int, c_long},
+	os::raw::{c_int, c_long, c_float},
 };
+use std::os::raw::c_uint;
+use sdl2::libc::{srand, time};
 
 use platform::{
 	sdl2::{SDL2BitmapData, SDL2Platform},
@@ -33,7 +35,35 @@ static mut MENU_BITMAP: Option<PlatformBitmap<SDL2BitmapData>> = None;
 /// Platform
 static mut PLATFORM: Option<SDL2Platform> = None;
 
+#[repr(C)]
+struct Point {
+	x: c_float,
+	y: c_float
+}
+
+#[repr(C)]
+#[allow(non_snake_case)]
+struct ButtonState {
+	gotPress: bool,
+	gotRelease: bool,
+	held: bool,
+	heldNow: bool,
+	wasHeld: bool,
+}
+
+#[repr(C)]
+#[allow(non_snake_case)]
+struct MouseState {
+	pos: Point,
+	oldPos: Point,
+	buttons: [ButtonState; 3],
+}
+
 extern "C" {
+	static mut mouse: MouseState;
+	static mut Mouse_fallingDirection: c_int;
+	static mut Mouse_risingClick: bool;
+	static mut Keys: [ButtonState; 256];
 	static mut Menu_gameSpeed: c_int;
 	static mut Menu_paused: bool;
 
@@ -66,6 +96,10 @@ extern "C" {
 	fn Ball_render();
 	fn Bg_render2();
 	fn Scale_render();
+
+	fn init_elements();
+
+	fn Sim_reset(drawBorder: bool);
 }
 
 unsafe fn render() {
@@ -89,7 +123,7 @@ unsafe fn render() {
 #[allow(non_snake_case)]
 #[no_mangle]
 unsafe extern "C" fn Platform_nanosec() -> c_long {
-	0
+	PLATFORM.as_ref().unwrap().nanosec() as c_long
 }
 /// Provides a C interface for selecting the file
 #[allow(non_snake_case)]
@@ -166,6 +200,9 @@ fn main() {
 			MENU_WIDTH as i32,
 			MENU_HEIGHT as i32,
 		));
+		srand(time(std::ptr::null_mut()) as c_uint);
+		init_elements();
+		Sim_reset(false);
 		PLATFORM.as_mut().unwrap().entry();
 	}
 }
