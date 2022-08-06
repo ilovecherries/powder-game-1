@@ -7,10 +7,10 @@ use sdl2::{
 	render::{Canvas, Texture, TextureCreator},
 	surface::Surface,
 	video::{Window, WindowContext},
-	Sdl, VideoSubsystem,
+	Sdl, VideoSubsystem, rect::Rect,
 };
 
-use crate::{frame, WINDOW_HEIGHT, WINDOW_TITLE, WINDOW_WIDTH};
+use crate::{frame, redraw, WINDOW_HEIGHT, WINDOW_TITLE, WINDOW_WIDTH};
 
 use super::{Axis, Color, Platform, PlatformBitmap};
 
@@ -94,14 +94,15 @@ impl<'a> Platform<SDL2BitmapData<'a>> for SDL2Platform {
 			}
 			unsafe {
 				frame();
+				redraw();
 			}
 			self.canvas.present();
 		}
 	}
 
 	fn draw_bitmap(
-		&self,
-		bitmap: PlatformBitmap<SDL2BitmapData>,
+		&mut self,
+		bitmap: &PlatformBitmap<SDL2BitmapData>,
 		dx: i32,
 		dy: i32,
 		src_x: i32,
@@ -109,7 +110,14 @@ impl<'a> Platform<SDL2BitmapData<'a>> for SDL2Platform {
 		w: i32,
 		h: i32,
 	) {
-		todo!()
+		let texture = bitmap.data.as_texture(&self.texture_creator).unwrap();
+		let src = Rect::new(
+			src_x, src_y, w as u32,  h as u32
+		);
+		let dest = Rect::new(
+			dx, dy, w as u32,  h as u32
+		);
+		self.canvas.copy(&texture, src, dest).unwrap();
 	}
 
 	fn nanosec(&self) -> u32 {

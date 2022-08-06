@@ -1,8 +1,11 @@
-use std::{os::raw::{c_int, c_long}, ffi::c_void};
+use std::{
+	ffi::c_void,
+	os::raw::{c_int, c_long},
+};
 
 use platform::{
-	sdl2::{SDL2Platform, SDL2BitmapData},
-	Platform, PlatformBitmap, Color,
+	sdl2::{SDL2BitmapData, SDL2Platform},
+	Color, Platform, PlatformBitmap,
 };
 
 pub mod platform;
@@ -10,9 +13,9 @@ pub mod platform;
 const W: usize = 400;
 const H: usize = 300;
 /// Width of the game to render
-const WIDTH: usize = 8+W+8;
+const WIDTH: usize = 8 + W + 8;
 /// Height of the game to render
-const HEIGHT: usize = 8+H+8;
+const HEIGHT: usize = 8 + H + 8;
 /// Width of the menu to render.
 const MENU_WIDTH: usize = 400;
 /// Height of the menu to render.
@@ -24,10 +27,9 @@ const WINDOW_HEIGHT: usize = 300 + MENU_HEIGHT;
 /// Name of the window to be created
 const WINDOW_TITLE: &str = "Powder Game";
 
-/// Bitmap that is used for rendering the viewport onto
 static mut SIM_BITMAP: Option<PlatformBitmap<SDL2BitmapData>> = None;
-/// Bitmap that is used for rendering the menu onto
 static mut MENU_BITMAP: Option<PlatformBitmap<SDL2BitmapData>> = None;
+
 /// Platform
 static mut PLATFORM: Option<SDL2Platform> = None;
 
@@ -130,10 +132,40 @@ unsafe fn frame() {
 	Input_update2();
 }
 
+unsafe fn redraw() {
+	PLATFORM.as_mut().unwrap().draw_bitmap(
+		SIM_BITMAP.as_ref().unwrap(),
+		0,
+		0,
+		8,
+		8,
+		W as i32,
+		H as i32,
+	);
+	PLATFORM.as_mut().unwrap().draw_bitmap(
+		MENU_BITMAP.as_ref().unwrap(),
+		0,
+		H as i32,
+		0,
+		0,
+		MENU_WIDTH as i32,
+		MENU_HEIGHT as i32,
+	);
+}
+
 fn main() {
 	unsafe {
 		PLATFORM = Some(SDL2Platform::default());
-		SIM_BITMAP = Some(PLATFORM.unwrap().create_bitmap(grp.as_mut_ptr(), WIDTH as i32, HEIGHT as i32));
-		PLATFORM.unwrap().entry();
+		SIM_BITMAP = Some(PLATFORM.as_ref().unwrap().create_bitmap(
+			grp.as_mut_ptr(),
+			WIDTH as i32,
+			HEIGHT as i32,
+		));
+		MENU_BITMAP = Some(PLATFORM.as_ref().unwrap().create_bitmap(
+			Menu_grp.as_mut_ptr(),
+			MENU_WIDTH as i32,
+			MENU_HEIGHT as i32,
+		));
+		PLATFORM.as_mut().unwrap().entry();
 	}
 }
