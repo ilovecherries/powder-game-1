@@ -1,4 +1,4 @@
-pub mod sdl2;
+pub mod shm;
 
 /// Axis parameter for bitmaps
 pub type Axis = i32;

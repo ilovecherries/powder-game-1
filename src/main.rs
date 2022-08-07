@@ -6,7 +6,7 @@ use std::os::raw::c_uint;
 use sdl2::libc::{srand, time};
 
 use platform::{
-	sdl2::{SDL2BitmapData, SDL2Platform},
+	shm::{SDL2BitmapData, SDL2Platform},
 	Color, Platform, PlatformBitmap,
 };
 
