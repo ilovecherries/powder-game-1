@@ -38,7 +38,7 @@ void Random_update(void) {
 	randomStep = rand() % 512 | 1;
 }
 
-AUTORUN {
+void Random_init() {
 	// init random numbers
 	for (int i=0;i<1024;i++)
 		randomFloats[i] = (real)i/1024;

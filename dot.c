@@ -22,7 +22,7 @@ Dot* const Dot_BGFAN = Dot_0-4;
 Dot* const Dot_WHEEL = Dot_0-3;
 Dot* const Dot_BALL = Dot_0-2;
 Dot* const Dot_BLOCK = Dot_0-1;
-AUTORUN {
+void Dot_init() {
 	for (int i=1; i<=5; i++)
 		Dot_0[-i] = (Dot){.type = -i};
 }

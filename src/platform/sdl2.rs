@@ -14,7 +14,9 @@ use std::{
 	time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-use crate::{frame, mouse, redraw, ButtonState, Point, WINDOW_HEIGHT, WINDOW_TITLE, WINDOW_WIDTH};
+use crate::{
+	frame, mouse, redraw, ButtonState, Keys, Point, WINDOW_HEIGHT, WINDOW_TITLE, WINDOW_WIDTH,
+};
 
 use super::{Axis, Color, Platform, PlatformBitmap};
 
@@ -29,16 +31,30 @@ pub struct SDL2Platform {
 	texture_creator: TextureCreator<WindowContext>,
 }
 
-fn get_mouse_button<'a>(button: MouseButton) -> &'a mut ButtonState {
-	unsafe {
-		mouse.buttons[match button {
-			sdl2::mouse::MouseButton::Left => 0,
-			sdl2::mouse::MouseButton::Middle => 1,
-			sdl2::mouse::MouseButton::Right => 2,
-			_ => unreachable!(),
-		}]
-		.borrow_mut()
-	}
+fn get_mouse_button<'a>(button: MouseButton) -> Option<&'a mut ButtonState> {
+	let index = match button {
+		sdl2::mouse::MouseButton::Left => 0,
+		sdl2::mouse::MouseButton::Middle => 1,
+		sdl2::mouse::MouseButton::Right => 2,
+		_ => return None,
+	};
+	unsafe { Some(mouse.buttons[index].borrow_mut()) }
+}
+
+fn get_key<'a>(key: Keycode) -> Option<&'a mut ButtonState> {
+	let index = match key {
+		Keycode::W => b'W',
+		Keycode::A => b'A',
+		Keycode::S => b'S',
+		Keycode::D => b'D',
+		Keycode::Left => 37,
+		Keycode::Up => 38,
+		Keycode::Right => 39,
+		Keycode::Down => 40,
+		Keycode::Return => b'\r',
+		_ => return None,
+	} as usize;
+	unsafe { Some(Keys[index].borrow_mut()) }
 }
 
 impl Default for SDL2Platform {
@@ -115,11 +131,13 @@ impl<'a> Platform<SDL2BitmapData<'a>> for SDL2Platform {
 						clicks: _,
 						x: _,
 						y: _,
-					} => {
-						let btn = get_mouse_button(mouse_btn);
-						btn.heldNow = true;
-						btn.gotPress = true;
-					}
+					} => match get_mouse_button(mouse_btn) {
+						Some(btn) => {
+							btn.heldNow = true;
+							btn.gotPress = true;
+						}
+						_ => {}
+					},
 					Event::MouseButtonUp {
 						timestamp: _,
 						window_id: _,
@@ -128,11 +146,41 @@ impl<'a> Platform<SDL2BitmapData<'a>> for SDL2Platform {
 						clicks: _,
 						x: _,
 						y: _,
-					} => {
-						let btn = get_mouse_button(mouse_btn);
-						btn.heldNow = false;
-						btn.gotRelease = true;
-					}
+					} => match get_mouse_button(mouse_btn) {
+						Some(btn) => {
+							btn.heldNow = false;
+							btn.gotRelease = true;
+						}
+						_ => {}
+					},
+					Event::KeyDown {
+						timestamp: _,
+						window_id: _,
+						keycode,
+						scancode: _,
+						keymod: _,
+						repeat: _,
+					} => match get_key(keycode.unwrap()) {
+						Some(k) => {
+							k.heldNow = true;
+							k.gotPress = true;
+						}
+						None => {}
+					},
+					Event::KeyUp {
+						timestamp: _,
+						window_id: _,
+						keycode,
+						scancode: _,
+						keymod: _,
+						repeat: _,
+					} => match get_key(keycode.unwrap()) {
+						Some(k) => {
+							k.heldNow = false;
+							k.gotRelease = true;
+						}
+						None => {}
+					},
 					_ => {}
 				}
 			}

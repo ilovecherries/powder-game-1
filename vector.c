@@ -73,7 +73,7 @@ real Vec_angle(Point v) {
 	return angle;
 }
 
-AUTORUN {
+void Vector_init() {
 	// init sine table
 	int i;
 	for (i=0;i<512;i++) {

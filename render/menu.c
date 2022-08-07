@@ -51,7 +51,7 @@ static void drawLabel(int pos, Elem elem) {
 	}
 }
 
-AUTORUN {
+void Menu_init() {
 	Draw_mrectangle(0,0,MENU_WIDTH,MENU_HEIGHT,0x404040);
 	Draw_spacedText(203,rowLast,"DAN-BALL.jp (C) 2007 ha55ii",-1,0,-1);
 	

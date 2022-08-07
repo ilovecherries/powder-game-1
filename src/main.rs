@@ -100,6 +100,11 @@ extern "C" {
 	fn init_elements();
 
 	fn Sim_reset(drawBorder: bool);
+
+	fn Menu_init();
+	fn Dot_init();
+	fn Random_init();
+	fn Vector_init();
 }
 
 unsafe fn render() {
@@ -201,6 +206,10 @@ fn main() {
 			MENU_HEIGHT as i32,
 		));
 		srand(time(std::ptr::null_mut()) as c_uint);
+		Menu_init();
+		Dot_init();
+		Random_init();
+		Vector_init();
 		init_elements();
 		Sim_reset(false);
 		PLATFORM.as_mut().unwrap().entry();
