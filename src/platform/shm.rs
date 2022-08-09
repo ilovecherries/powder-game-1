@@ -36,10 +36,6 @@ pub struct SDL2Platform {
 
 #[repr(C)]
 struct SharedMemoryBuffer {
-	/// Width of the graphic data
-	width: usize,
-	/// Height of the graphic data
-	height: usize,
 	/// Graphic data
 	/// 
 	/// (this is hardcoded length so it can interact with the library)
@@ -95,11 +91,6 @@ impl Default for SDL2Platform {
 			Err(ShmemError::LinkExists) => ShmemConf::new().flink("powder-game-2").open().unwrap(),
 			_ => { panic!("fuck you") }
 		};
-		let rawshm = shm.as_ptr() as *mut SharedMemoryBuffer;
-		unsafe {
-			(*rawshm).width = WINDOW_WIDTH;
-			(*rawshm).height = WINDOW_HEIGHT;
-		}
 		SDL2Platform {
 			sdl_context,
 			canvas,
