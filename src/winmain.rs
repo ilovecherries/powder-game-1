@@ -12,7 +12,11 @@ use std::{
 use widestring::{u16str, utf16str};
 use windows::core::{InParam, PCWSTR, PWSTR};
 use windows::Win32::Foundation::{BOOL, HINSTANCE, HWND, LPARAM, LRESULT, RECT, WPARAM};
-use windows::Win32::Graphics::Gdi::{BeginPaint, EndPaint, GetDC, GetSysColorBrush, StretchDIBits, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS, HDC, PAINTSTRUCT, SRCCOPY, RGBQUAD, RedrawWindow, UpdateWindow, InvalidateRect};
+use windows::Win32::Graphics::Gdi::{
+	BeginPaint, EndPaint, GetDC, GetSysColorBrush, InvalidateRect, RedrawWindow, StretchDIBits,
+	UpdateWindow, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS, HDC, PAINTSTRUCT, RGBQUAD,
+	SRCCOPY,
+};
 use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows::Win32::System::SystemInformation::GetTickCount;
 use windows::Win32::System::Threading::{GetStartupInfoW, STARTUPINFOW};
@@ -21,11 +25,11 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{
 	VIRTUAL_KEY, VK_A, VK_D, VK_DOWN, VK_LEFT, VK_RETURN, VK_RIGHT, VK_S, VK_UP, VK_W,
 };
 use windows::Win32::UI::WindowsAndMessaging::{
-	AdjustWindowRect, CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW,
-	LoadCursorW, PeekMessageW, PostQuitMessage, RegisterClassW, TranslateMessage, CS_HREDRAW,
-	CS_VREDRAW, CW_USEDEFAULT, HMENU, IDC_ARROW, MSG, PM_REMOVE, WINDOW_EX_STYLE, WM_CLOSE,
-	WM_DESTROY, WM_KEYDOWN, WM_MOUSEMOVE, WM_PAINT, WM_QUIT, WNDCLASSW, WS_OVERLAPPEDWINDOW,
-	WS_VISIBLE, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_RBUTTONDOWN, WM_RBUTTONUP, WM_KEYUP,
+	AdjustWindowRect, CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW, LoadCursorW,
+	PeekMessageW, PostQuitMessage, RegisterClassW, TranslateMessage, CS_HREDRAW, CS_VREDRAW,
+	CW_USEDEFAULT, HMENU, IDC_ARROW, MSG, PM_REMOVE, WINDOW_EX_STYLE, WM_CLOSE, WM_DESTROY,
+	WM_KEYDOWN, WM_KEYUP, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MOUSEMOVE, WM_PAINT, WM_QUIT,
+	WM_RBUTTONDOWN, WM_RBUTTONUP, WNDCLASSW, WS_OVERLAPPEDWINDOW, WS_VISIBLE,
 };
 
 type Axis = i32;
@@ -122,19 +126,10 @@ macro_rules! PCWSTR {
 	};
 }
 
-/// This discards the value passed to it, just to make my life easier
-macro_rules! discard {
-	($exp:expr) => {{
-		let _ = $exp;
-	}};
-}
-
 #[allow(non_snake_case)]
 #[no_mangle]
 extern "C" fn Platform_nanosec() -> c_long {
-	unsafe {
-		(GetTickCount() as c_long).wrapping_mul(1000000 as c_long)
-	}
+	unsafe { (GetTickCount() as c_long).wrapping_mul(1000000 as c_long) }
 }
 
 #[allow(non_snake_case)]
@@ -321,7 +316,7 @@ unsafe extern "system" fn WndProc(
 			EndPaint(hwnd, addr_of_mut!(ps));
 		}
 		WM_CLOSE => {
-			discard!(DestroyWindow(hwnd));
+			drop(DestroyWindow(hwnd));
 		}
 		WM_DESTROY => PostQuitMessage(0),
 		WM_MOUSEMOVE => {
